@@ -21,9 +21,7 @@ const dbCheck = async (req, res, next) => {
     } catch (err) {
         console.error('Database connection failed:', err.message);
         res.status(503).json({
-            message: process.env.VERCEL
-                ? 'Database not connected. Add MONGO_URI in Vercel Environment Variables and redeploy.'
-                : 'Database not connected. Set MONGO_URI in .env or start MongoDB locally.'
+            message: 'Database not connected. Set MONGO_URI in .env or start MongoDB locally.'
         });
     }
 };
@@ -41,9 +39,7 @@ app.get('/api/health', async (req, res) => {
         res.json({
             ok: false,
             database: 'disconnected',
-            hint: process.env.VERCEL
-                ? 'Set MONGO_URI in Vercel Environment Variables'
-                : 'Set MONGO_URI in .env'
+            hint: 'Set MONGO_URI in .env'
         });
     }
 });
@@ -65,20 +61,16 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-module.exports = app;
-
-if (!process.env.VERCEL) {
-    connectDB()
-        .then(() => {
-            app.listen(PORT, () => {
-                console.log(`Server running at http://localhost:${PORT}`);
-            });
-            console.log('Connected to MongoDB');
-        })
-        .catch((err) => {
-            console.error('MongoDB connection error:', err.message);
-            app.listen(PORT, () => {
-                console.log(`Server running at http://localhost:${PORT} (database offline)`);
-            });
+connectDB()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server running at http://localhost:${PORT}`);
         });
-}
+        console.log('Connected to MongoDB');
+    })
+    .catch((err) => {
+        console.error('MongoDB connection error:', err.message);
+        app.listen(PORT, () => {
+            console.log(`Server running at http://localhost:${PORT} (database offline)`);
+        });
+    });
