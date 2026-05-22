@@ -6,6 +6,7 @@ const path = require('path');
 
 dotenv.config();
 
+const connectDB = require('./db/connect');
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
@@ -13,11 +14,18 @@ const demoRoutes = require('./routes/demoRoutes');
 
 const app = express();
 
-const dbCheck = (req, res, next) => {
-    if (mongoose.connection.readyState === 1) return next();
-    res.status(503).json({
-        message: 'Database not connected. Start MongoDB, then refresh this page.'
-    });
+const dbCheck = async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('Database connection failed:', err.message);
+        res.status(503).json({
+            message: process.env.VERCEL
+                ? 'Database not connected. Add MONGO_URI in Vercel Environment Variables and redeploy.'
+                : 'Database not connected. Set MONGO_URI in .env or start MongoDB locally.'
+        });
+    }
 };
 
 // Middleware
@@ -25,11 +33,19 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/api/health', (req, res) => {
-    res.json({
-        ok: true,
-        database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
-    });
+app.get('/api/health', async (req, res) => {
+    try {
+        await connectDB();
+        res.json({ ok: true, database: 'connected' });
+    } catch (err) {
+        res.json({
+            ok: false,
+            database: 'disconnected',
+            hint: process.env.VERCEL
+                ? 'Set MONGO_URI in Vercel Environment Variables'
+                : 'Set MONGO_URI in .env'
+        });
+    }
 });
 
 // Routes
@@ -47,19 +63,22 @@ app.use((req, res) => {
     }
 });
 
-// Database connection
 const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/event-booking';
 
-app.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-    console.log('Open this URL in your browser (include the port number).');
-});
+module.exports = app;
 
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => {
-        console.error('MongoDB connection error:', err.message);
-        console.error('The website will load, but login/events/booking need MongoDB running.');
-        console.error('Install MongoDB or run: mongod (default port 27017)');
-    });
+if (!process.env.VERCEL) {
+    connectDB()
+        .then(() => {
+            app.listen(PORT, () => {
+                console.log(`Server running at http://localhost:${PORT}`);
+            });
+            console.log('Connected to MongoDB');
+        })
+        .catch((err) => {
+            console.error('MongoDB connection error:', err.message);
+            app.listen(PORT, () => {
+                console.log(`Server running at http://localhost:${PORT} (database offline)`);
+            });
+        });
+}
