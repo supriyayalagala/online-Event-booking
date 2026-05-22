@@ -875,6 +875,7 @@ body {
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -3728,11 +3729,6 @@ html.a11y-dark .rail-title-vertical {
 
 .payment-success-secondary:hover {
     color: #e5e7eb;
-}
-
-body.payment-success-active .payment-page .page-hero-compact + .container,
-body.payment-success-active .page-hero-compact h1 {
-    /* keep summary visible */
 }
 
 /* Standalone payment success page */
