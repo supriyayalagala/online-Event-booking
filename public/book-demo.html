@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Demo - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="support">
+    <nav class="navbar" id="navbar"></nav>
+
+    <header class="page-hero">
+        <h1>Book a Demo</h1>
+        <p>See how TicketFlow can help you sell out your next event. Our team will reach out within 24 hours.</p>
+    </header>
+
+    <main class="container">
+        <div class="form-container wide">
+            <h2 style="text-align:center;margin-bottom:0.5rem;">Schedule Your Free Demo</h2>
+            <p style="text-align:center;color:var(--light-text);margin-bottom:1.5rem;font-size:0.9rem;">No credit card required · First 10 tickets free</p>
+            <div id="demo-msg"></div>
+            <form id="demo-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="name">Full Name *</label>
+                        <input type="text" id="name" required placeholder="Your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Work Email *</label>
+                        <input type="email" id="email" required placeholder="you@company.com">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">Phone Number *</label>
+                        <input type="tel" id="phone" required placeholder="+1 555 000 0000">
+                    </div>
+                    <div class="form-group">
+                        <label for="company">Company / Organization</label>
+                        <input type="text" id="company" placeholder="Optional">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventType">Event Type *</label>
+                        <select id="eventType" required>
+                            <option value="">Select type</option>
+                            <option value="Wedding">Wedding</option>
+                            <option value="Birthday">Birthday</option>
+                            <option value="Corporate">Corporate</option>
+                            <option value="Mature/Family Function">Family Function</option>
+                            <option value="Concert/Festival">Concert / Festival</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="preferredDate">Preferred Demo Date</label>
+                        <input type="date" id="preferredDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="message">Tell us about your event</label>
+                    <textarea id="message" rows="4" placeholder="Expected guests, timeline, features you need..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">Request Demo</button>
+            </form>
+            <p style="text-align:center;margin-top:1.5rem;font-size:0.9rem;color:var(--light-text);">
+                Already have an account? <a href="/login.html" style="color:var(--primary-color);font-weight:600;">Log in</a>
+            </p>
+        </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {});
+
+        document.getElementById('demo-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msg = document.getElementById('demo-msg');
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+
+            const payload = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                company: document.getElementById('company').value,
+                eventType: document.getElementById('eventType').value,
+                message: document.getElementById('message').value
+            };
+
+            const prefDate = document.getElementById('preferredDate').value;
+            if (prefDate) payload.preferredDate = prefDate;
+
+            try {
+                const res = await fetch('/api/demos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    msg.innerHTML = '<div class="alert alert-success">Demo request submitted! We will contact you within 24 hours.</div>';
+                    e.target.reset();
+                } else {
+                    msg.innerHTML = `<div class="alert alert-error">${data.message || 'Submission failed'}</div>`;
+                }
+            } catch (err) {
+                msg.innerHTML = '<div class="alert alert-error">Network error. Please try again.</div>';
+            }
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>

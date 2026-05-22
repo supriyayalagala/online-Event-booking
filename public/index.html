@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TicketFlow | Event Management & Online Booking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="home">
+    <nav class="navbar" id="navbar"></nav>
+
+    <!-- Fixed destination wedding video — stays put while white content scrolls over (TCS-style) -->
+    <div class="video-hero-fixed" id="video-hero-fixed" aria-label="Welcome">
+        <video
+            class="video-hero-media"
+            id="video-hero-media"
+            autoplay
+            muted
+            loop
+            playsinline
+            preload="auto"
+            poster="https://loremflickr.com/800/500/destination,wedding?lock=701"
+            data-src-sd="/videos/hero-destination-wedding.mp4"
+            data-src-hd="/videos/hero-destination-wedding.mp4"
+            aria-hidden="true"
+        ></video>
+        <div class="video-hero-overlay" aria-hidden="true"></div>
+        <div class="video-hero-content" id="video-hero-caption">
+            <h1 class="video-hero-title">Plan, publish &amp; sell tickets for every event</h1>
+            <p class="video-hero-lead">Weddings, birthdays, corporate events — one platform to publish, sell, and manage every booking.</p>
+        </div>
+        <div class="video-hero-toolbar">
+            <button type="button" class="video-hero-pause-btn" id="video-hero-pause" aria-label="Pause video">
+                <span class="video-hero-pause-icon video-hero-pause-icon--pause" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                </span>
+                <span class="video-hero-pause-icon video-hero-pause-icon--play" hidden aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+            </button>
+            <a href="#home-start" class="btn btn-hero-primary btn-lg video-hero-learn">Learn more</a>
+        </div>
+    </div>
+    <!-- Empty scroll lane — same height as viewport so site content starts below, then slides up -->
+    <div class="video-hero-scroll-space" aria-hidden="true"></div>
+
+    <div class="home-site-main" id="home-start">
+    <section class="home-scroll-intro" aria-labelledby="home-whats-new-title">
+        <div class="home-scroll-intro-inner">
+            <h2 id="home-whats-new-title" class="home-scroll-intro-title">What&apos;s new</h2>
+            <div class="home-scroll-intro-arrows" aria-hidden="true">
+                <span>←</span>
+                <span>→</span>
+            </div>
+        </div>
+    </section>
+    <section class="stats-strip">
+        <div class="stat-item">
+            <strong>10K+</strong>
+            <span>Tickets processed</span>
+        </div>
+        <div class="stat-item">
+            <strong>0%</strong>
+            <span>Commission fees</span>
+        </div>
+        <div class="stat-item">
+            <strong>24/7</strong>
+            <span>Online booking</span>
+        </div>
+        <div class="stat-item">
+            <strong>Real-time</strong>
+            <span>Admin dashboard</span>
+        </div>
+    </section>
+
+    <section class="category-rail-section" aria-label="Browse events by category">
+        <h2 class="category-rail-title">Select an Event</h2>
+        <p class="category-rail-subtitle">Pick a category to explore weddings, birthdays, corporate events, and more</p>
+        <div class="category-rail-scroll">
+            <div class="category-rail-track" id="home-category-rail">
+                <p class="category-rail-empty">Loading categories…</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 class="section-title">Explore the platform</h2>
+        <p class="section-subtitle">Each section lives on its own page — navigate from the menu above</p>
+        <div class="portal-grid">
+            <a href="/how-it-works.html" class="portal-card">
+                <span class="portal-icon">🚀</span>
+                <h3>How It Works</h3>
+                <p>Create, sell, and manage events in three steps.</p>
+                <span class="portal-link">Learn more →</span>
+            </a>
+            <a href="/features.html" class="portal-card">
+                <span class="portal-icon">⚡</span>
+                <h3>Features</h3>
+                <p>Ticketing, dashboards, payments, and secure accounts.</p>
+                <span class="portal-link">See features →</span>
+            </a>
+            <a href="/events.html" class="portal-card portal-card-accent">
+                <span class="portal-icon">🎟️</span>
+                <h3>Browse Events</h3>
+                <p>Discover upcoming events and book your tickets.</p>
+                <span class="portal-link">View events →</span>
+            </a>
+            <a href="/pricing.html" class="portal-card">
+                <span class="portal-icon">💎</span>
+                <h3>Pricing</h3>
+                <p>Starter free plan or Pro with full organizer tools.</p>
+                <span class="portal-link">View pricing →</span>
+            </a>
+        </div>
+    </section>
+
+    <section class="sticky-scroll-section" id="home-sticky-scroll" aria-label="Featured scroll">
+        <div class="sticky-scroll-intro">
+            <h2>Featured experiences</h2>
+            <p>Scroll to explore stunning venues and celebrations — images animate into focus.</p>
+            <span class="sticky-scroll-hint">Scroll down ↓</span>
+        </div>
+        <div class="sticky-scroll-layout">
+            <aside class="sticky-scroll-sidebar">
+                <div class="sticky-scroll-pin">
+                    <p class="sticky-scroll-label">Now viewing</p>
+                    <p class="sticky-counter"><span id="sticky-index">01</span> / <span id="sticky-total">04</span></p>
+                    <div class="sticky-progress-track">
+                        <div class="sticky-progress-bar" id="sticky-progress"></div>
+                    </div>
+                    <h3 id="sticky-title">Loading…</h3>
+                    <div class="sticky-meta" id="sticky-meta"></div>
+                    <p id="sticky-desc"></p>
+                    <a href="/events.html" id="sticky-cta" class="btn btn-primary btn-lg">Book this event</a>
+                </div>
+            </aside>
+            <div class="sticky-scroll-panels" id="sticky-scroll-panels">
+                <p class="sticky-scroll-empty">Loading…</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="carousel-section ticket-events-carousel popular-events-section" aria-label="Popular events">
+        <div class="popular-events-bar">
+            <div class="popular-events-bar-decor" aria-hidden="true"></div>
+            <div class="popular-events-bar-inner">
+                <h2 class="popular-events-title">Popular Events</h2>
+                <div class="popular-events-filters" role="group" aria-label="Filter events by date">
+                    <button type="button" class="popular-filter-pill" data-filter="today">Today</button>
+                    <button type="button" class="popular-filter-pill active" data-filter="tomorrow">Tomorrow</button>
+                    <button type="button" class="popular-filter-pill" data-filter="week">This Week</button>
+                    <button type="button" class="popular-filter-pill" data-filter="all">All</button>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-wrap popular-events-carousel-wrap">
+            <div class="carousel-nav-row" id="home-carousel-nav-row">
+                <button type="button" class="carousel-btn" id="home-carousel-prev" aria-label="Scroll left">←</button>
+                <button type="button" class="carousel-btn" id="home-carousel-next" aria-label="Scroll right">→</button>
+            </div>
+            <div class="carousel-viewport" id="home-carousel-viewport">
+                <div class="carousel-track" id="home-carousel-track">
+                    <p class="carousel-empty">Loading events...</p>
+                </div>
+            </div>
+            <p class="section-cta" style="margin-top: 2rem;">
+                <a href="/events.html" class="btn btn-primary btn-lg">See all events</a>
+            </p>
+        </div>
+    </section>
+
+    <section class="organizer-banner">
+        <div class="organizer-banner-inner">
+            <div>
+                <h2>Running an event?</h2>
+                <p>Publish your venue, set pricing, control capacity, and monitor every booking from one dashboard.</p>
+            </div>
+            <div class="organizer-actions">
+                <a href="/create-event.html" class="btn btn-primary btn-lg">Create Event</a>
+                <a href="/book-demo.html" class="btn btn-white btn-lg">Book a Demo</a>
+            </div>
+        </div>
+    </section>
+
+    </div>
+
+    <footer id="site-footer"></footer>
+    <a href="/book-demo.html" class="chat-widget" title="Book a demo">💬</a>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/event-videos.js"></script>
+    <script src="/js/video-hero.js"></script>
+    <script src="/js/event-images.js"></script>
+    <script src="/js/category-rail.js"></script>
+    <script src="/js/carousel.js"></script>
+    <script src="/js/sticky-scroll.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            initVideoHero();
+            initHomeCategoryRail('home-category-rail');
+        });
+    </script>
+</body>
+</html>

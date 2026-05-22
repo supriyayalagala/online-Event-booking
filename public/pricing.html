@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="pricing">
+    <nav class="navbar" id="navbar"></nav>
+
+    <header class="page-hero">
+        <h1>Pricing</h1>
+        <p>Transparent pricing with no hidden fees — click a plan to select it.</p>
+    </header>
+
+    <main class="section">
+        <div class="pricing-grid" id="pricing-grid">
+            <div class="pricing-card pricing-card-selectable featured" data-plan="starter" role="button" tabindex="0" aria-pressed="true">
+                <h3>Starter</h3>
+                <div class="pricing-price">₹0 <span>/ month</span></div>
+                <ul class="pricing-features">
+                    <li>First 10 tickets free</li>
+                    <li>1 active event</li>
+                    <li>Basic booking management</li>
+                    <li>Email support</li>
+                </ul>
+                <a href="/register.html" class="btn btn-primary pricing-cta" style="width:100%;">Get Started</a>
+            </div>
+            <div class="pricing-card pricing-card-selectable" data-plan="pro" role="button" tabindex="0" aria-pressed="false">
+                <h3>Pro</h3>
+                <div class="pricing-price">₹2,407 <span>/ month</span></div>
+                <ul class="pricing-features">
+                    <li>Unlimited events</li>
+                    <li>Zero commission on tickets</li>
+                    <li>Admin dashboard</li>
+                    <li>Payment status tracking</li>
+                    <li>Priority support</li>
+                </ul>
+                <a href="/book-demo.html" class="btn btn-outline pricing-cta" style="width:100%;">Book a Demo</a>
+            </div>
+        </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+    <script src="/js/main.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+</body>
+</html>

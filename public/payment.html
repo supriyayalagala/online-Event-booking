@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="">
+    <nav class="navbar" id="navbar"></nav>
+
+    <header class="page-hero page-hero-compact">
+        <h1>Complete payment</h1>
+        <p>Demo payment only — no real money is charged.</p>
+    </header>
+
+    <main class="container payment-page">
+        <div id="payment-loading" class="payment-loading">Loading booking…</div>
+
+        <div id="payment-content" style="display:none;">
+            <div class="payment-layout">
+                <aside class="payment-summary-card">
+                    <h2>Order summary</h2>
+                    <div class="payment-summary-row">
+                        <span>Event</span>
+                        <strong id="pay-event-title">—</strong>
+                    </div>
+                    <div class="payment-summary-row">
+                        <span>Date</span>
+                        <span id="pay-event-date">—</span>
+                    </div>
+                    <div class="payment-summary-row">
+                        <span>Guests</span>
+                        <span id="pay-guests">—</span>
+                    </div>
+                    <div class="payment-summary-total">
+                        <span>Amount to pay</span>
+                        <strong id="pay-amount">₹0.00</strong>
+                    </div>
+                    <p class="payment-status-line">
+                        Booking: <span id="pay-booking-status" class="badge badge-pending">Pending</span>
+                    </p>
+                    <p class="payment-status-line">
+                        Payment: <span id="pay-payment-status" class="badge badge-pending">Pending</span>
+                    </p>
+                    <a href="/my-bookings.html" class="btn btn-outline" style="width:100%;margin-top:1rem;">My bookings</a>
+                </aside>
+
+                <section class="payment-methods-card">
+                    <div class="payment-tabs" role="tablist">
+                        <button type="button" class="payment-tab active" data-tab="qr">QR code</button>
+                        <button type="button" class="payment-tab" data-tab="upi">UPI</button>
+                        <button type="button" class="payment-tab" data-tab="netbanking">Net banking</button>
+                    </div>
+
+                    <div class="payment-rules">
+                        <strong>Demo rules (simulated):</strong>
+                        <ul>
+                            <li><b>Pending</b> — until you pay or leave this page</li>
+                            <li><b>QR</b> — click confirm → Success</li>
+                            <li><b>UPI</b> — valid ID like <code>name@paytm</code> → Success; word <code>fail</code> → Failed</li>
+                            <li><b>Net banking</b> — account ending <b>5–9</b> → Success; ending <b>0–4</b> → Failed</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-qr" class="payment-panel active">
+                        <div class="qr-block">
+                            <img id="qr-image" src="" alt="Payment QR code" width="200" height="200">
+                            <p class="qr-hint">Scan with any UPI app (demo)</p>
+                            <p class="qr-upi-string" id="qr-upi-text"></p>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg" id="btn-pay-qr" style="width:100%;">
+                            I have paid via QR
+                        </button>
+                    </div>
+
+                    <div id="tab-upi" class="payment-panel">
+                        <div class="form-group">
+                            <label for="upi-id">UPI ID</label>
+                            <input type="text" id="upi-id" placeholder="yourname@paytm or phone@ybl">
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg" id="btn-pay-upi" style="width:100%;">
+                            Pay with UPI
+                        </button>
+                    </div>
+
+                    <div id="tab-netbanking" class="payment-panel">
+                        <div class="form-group">
+                            <label for="bank-name">Select bank</label>
+                            <select id="bank-name">
+                                <option value="">Choose bank</option>
+                                <option value="hdfc">HDFC Bank</option>
+                                <option value="icici">ICICI Bank</option>
+                                <option value="sbi">State Bank of India</option>
+                                <option value="axis">Axis Bank</option>
+                                <option value="kotak">Kotak Mahindra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="account-number">Account number</label>
+                            <input type="text" id="account-number" placeholder="Enter account number (demo)">
+                            <small style="color:var(--light-text);">Last digit 5–9 = success, 0–4 = failed (demo)</small>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-lg" id="btn-pay-bank" style="width:100%;">
+                            Pay via net banking
+                        </button>
+                    </div>
+
+                    <div id="payment-result" class="payment-result"></div>
+
+                    <div id="payment-success-overlay" class="payment-success-overlay" hidden aria-hidden="true">
+                        <div class="payment-success-card" role="dialog" aria-labelledby="payment-success-title">
+                            <div class="payment-success-confetti" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span>
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                            <div class="payment-success-icon-wrap">
+                                <svg class="payment-success-check" viewBox="0 0 52 52" aria-hidden="true">
+                                    <circle class="payment-success-check-circle" cx="26" cy="26" r="25" fill="none"/>
+                                    <path class="payment-success-check-mark" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                                </svg>
+                            </div>
+                            <h2 id="payment-success-title" class="payment-success-title">Payment succeeded!</h2>
+                            <p class="payment-success-text">Your transaction was completed successfully. Thank you for your purchase!</p>
+                            <p class="payment-success-event" id="payment-success-event"></p>
+                            <p class="payment-success-amount" id="payment-success-amount"></p>
+                            <a href="/my-bookings.html" class="payment-success-btn">Go to Your Dashboard</a>
+                            <a href="/events.html" class="payment-success-secondary">Browse more events</a>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        let bookingId = null;
+        let currentBooking = null;
+
+        function setStatusBadges(booking) {
+            const bs = document.getElementById('pay-booking-status');
+            const ps = document.getElementById('pay-payment-status');
+            bs.textContent = booking.status;
+            bs.className = 'badge badge-' + booking.status.toLowerCase();
+            ps.textContent = booking.paymentStatus;
+            const payClass = booking.paymentStatus === 'Completed' ? 'completed'
+                : booking.paymentStatus === 'Failed' ? 'failed' : 'pending';
+            ps.className = 'badge badge-' + payClass;
+        }
+
+        function showResult(msg, type) {
+            const el = document.getElementById('payment-result');
+            el.className = 'payment-result alert alert-' + type;
+            el.innerHTML = msg;
+            el.style.display = 'block';
+        }
+
+        function showPaymentSuccess(booking) {
+            const overlay = document.getElementById('payment-success-overlay');
+            const methodsCard = document.querySelector('.payment-methods-card');
+            const ev = booking.event || {};
+
+            document.getElementById('payment-success-event').textContent =
+                ev.title ? `Event: ${ev.title}` : '';
+            document.getElementById('payment-success-amount').textContent =
+                `Paid ${formatPrice(booking.totalPrice)} · ${booking.guests} guest${booking.guests === 1 ? '' : 's'}`;
+
+            document.querySelectorAll('.payment-tabs, .payment-rules, .payment-panel, .payment-result').forEach((el) => {
+                el.style.display = 'none';
+            });
+            document.getElementById('payment-result').style.display = 'none';
+
+            if (methodsCard) methodsCard.classList.add('payment-methods-card--success');
+            overlay.hidden = false;
+            overlay.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('payment-success-active');
+        }
+
+        async function loadBooking() {
+            const token = getToken();
+            if (!token) {
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            bookingId = params.get('bookingId');
+            if (!bookingId) {
+                document.getElementById('payment-loading').innerHTML =
+                    '<p class="empty-msg error">No booking found. <a href="/events.html">Browse events</a></p>';
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/bookings/${bookingId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    document.getElementById('payment-loading').innerHTML =
+                        `<p class="empty-msg error">${data.message || 'Could not load booking'}</p>`;
+                    return;
+                }
+
+                currentBooking = data;
+                document.getElementById('payment-loading').style.display = 'none';
+                document.getElementById('payment-content').style.display = 'block';
+
+                const ev = data.event || {};
+                document.getElementById('pay-event-title').textContent = ev.title || 'Event';
+                document.getElementById('pay-event-date').textContent = ev.date
+                    ? new Date(ev.date).toLocaleDateString() + ' at ' + (ev.time || '')
+                    : '—';
+                document.getElementById('pay-guests').textContent = data.guests;
+                document.getElementById('pay-amount').textContent = formatPrice(data.totalPrice);
+                setStatusBadges(data);
+
+                const upiData = `upi://pay?pa=ticketflow@demo&pn=TicketFlow&am=${data.totalPrice}&cu=INR&tn=Booking-${data._id}`;
+                document.getElementById('qr-image').src =
+                    'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' + encodeURIComponent(upiData);
+                document.getElementById('qr-upi-text').textContent = upiData;
+
+                if (data.paymentStatus === 'Completed') {
+                    document.querySelectorAll('.payment-methods-card button').forEach(b => b.disabled = true);
+                    showPaymentSuccess(data);
+                } else if (data.paymentStatus === 'Failed') {
+                    showResult('Payment failed. Seats were released. You may book again.', 'error');
+                }
+            } catch (e) {
+                document.getElementById('payment-loading').innerHTML =
+                    '<p class="empty-msg error">Network error.</p>';
+            }
+        }
+
+        async function submitPayment(method, body) {
+            const token = getToken();
+            const btn = document.querySelector(`#btn-pay-${method === 'netbanking' ? 'bank' : method}`);
+            if (btn) btn.disabled = true;
+
+            try {
+                const res = await fetch(`/api/bookings/${bookingId}/pay`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ method, ...body })
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                    currentBooking.paymentStatus = data.paymentStatus;
+                    currentBooking.status = data.status;
+                    setStatusBadges(currentBooking);
+
+                    if (data.success) {
+                        currentBooking.event = currentBooking.event || {};
+                        showPaymentSuccess(currentBooking);
+                    } else {
+                        showResult(data.message || 'Payment failed.', 'error');
+                    }
+                } else {
+                    showResult(data.message || 'Payment request failed', 'error');
+                }
+            } catch (e) {
+                showResult('Network error.', 'error');
+            }
+
+            if (btn) btn.disabled = false;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBooking();
+
+            document.querySelectorAll('.payment-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.payment-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.payment-panel').forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+                });
+            });
+
+            document.getElementById('btn-pay-qr').addEventListener('click', () => {
+                submitPayment('qr', {});
+            });
+
+            document.getElementById('btn-pay-upi').addEventListener('click', () => {
+                submitPayment('upi', { upiId: document.getElementById('upi-id').value });
+            });
+
+            document.getElementById('btn-pay-bank').addEventListener('click', () => {
+                submitPayment('netbanking', {
+                    bankName: document.getElementById('bank-name').value,
+                    accountNumber: document.getElementById('account-number').value
+                });
+            });
+        });
+    </script>
+</body>
+</html>

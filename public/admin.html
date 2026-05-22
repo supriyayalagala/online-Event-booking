@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="">
+    <nav class="navbar" id="navbar"></nav>
+
+    <header class="page-hero page-hero-compact">
+        <h1>Admin Dashboard</h1>
+        <p>Manage bookings, demo requests, and events.</p>
+    </header>
+
+    <main class="container">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem;">
+            <a href="/create-event.html" class="btn btn-primary">+ Create Event</a>
+        </div>
+
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="bookings">Bookings</button>
+            <button class="tab-btn" data-tab="demos">Demo Requests</button>
+            <button class="tab-btn" data-tab="events">Events</button>
+        </div>
+
+        <div id="tab-bookings" class="tab-panel active">
+            <h3 style="margin-bottom:1rem;">All Bookings</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Event</th>
+                            <th>Guests</th>
+                            <th>Total</th>
+                            <th>Booking Status</th>
+                            <th>Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-bookings-body">
+                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-demos" class="tab-panel">
+            <h3 style="margin-bottom:1rem;">Demo Requests</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Event Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-demos-body">
+                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-events" class="tab-panel">
+            <h3 style="margin-bottom:1rem;">Manage Events</h3>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Date</th>
+                            <th>Seats</th>
+                            <th>Price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-events-body">
+                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+    <script src="/js/main.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getToken();
+            const user = getUser();
+
+            if (!token || user.role !== 'admin') {
+                window.location.href = '/';
+                return;
+            }
+
+            fetchAdminBookings();
+            fetchDemoRequests();
+            fetchAdminEvents();
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    activateAdminTab(btn.dataset.tab);
+                });
+            });
+
+            const hash = window.location.hash.replace('#', '');
+            if (hash === 'bookings' || hash === 'demos' || hash === 'events') {
+                activateAdminTab(hash);
+            }
+        });
+
+        function activateAdminTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.tab === tabName);
+            });
+            document.querySelectorAll('.tab-panel').forEach(p => {
+                p.classList.toggle('active', p.id === `tab-${tabName}`);
+            });
+        }
+
+        async function fetchAdminBookings() {
+            const token = getToken();
+            try {
+                const response = await fetch('/api/bookings', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const bookings = await response.json();
+                const tbody = document.getElementById('admin-bookings-body');
+                tbody.innerHTML = '';
+
+                if (!bookings.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No bookings found.</td></tr>';
+                    return;
+                }
+
+                bookings.forEach(b => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${b.user ? b.user.email : 'N/A'}</td>
+                            <td>${b.event ? b.event.title : 'Deleted'}</td>
+                            <td>${b.guests}</td>
+                            <td>${formatPrice(b.totalPrice)}</td>
+                            <td>
+                                <select onchange="updateBooking('${b._id}', 'status', this.value)">
+                                    <option value="Pending" ${b.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Confirmed" ${b.status === 'Confirmed' ? 'selected' : ''}>Confirmed</option>
+                                    <option value="Cancelled" ${b.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select onchange="updateBooking('${b._id}', 'paymentStatus', this.value)">
+                                    <option value="Pending" ${b.paymentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="Completed" ${b.paymentStatus === 'Completed' ? 'selected' : ''}>Completed</option>
+                                    <option value="Failed" ${b.paymentStatus === 'Failed' ? 'selected' : ''}>Failed</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                document.getElementById('admin-bookings-body').innerHTML =
+                    '<tr><td colspan="6" style="text-align:center;color:var(--danger);">Failed to load.</td></tr>';
+            }
+        }
+
+        async function updateBooking(id, field, value) {
+            const token = getToken();
+            const payload = {};
+            payload[field] = value;
+            await fetch(`/api/bookings/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+        }
+
+        async function fetchDemoRequests() {
+            const token = getToken();
+            try {
+                const res = await fetch('/api/demos', { headers: { Authorization: `Bearer ${token}` } });
+                const demos = await res.json();
+                const tbody = document.getElementById('admin-demos-body');
+                tbody.innerHTML = '';
+
+                if (!demos.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No demo requests yet.</td></tr>';
+                    return;
+                }
+
+                demos.forEach(d => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${d.name}</td>
+                            <td>${d.email}</td>
+                            <td>${d.phone}</td>
+                            <td>${d.eventType}</td>
+                            <td>${d.preferredDate ? new Date(d.preferredDate).toLocaleDateString() : '—'}</td>
+                            <td>
+                                <select onchange="updateDemo('${d._id}', this.value)">
+                                    <option value="New" ${d.status === 'New' ? 'selected' : ''}>New</option>
+                                    <option value="Contacted" ${d.status === 'Contacted' ? 'selected' : ''}>Contacted</option>
+                                    <option value="Scheduled" ${d.status === 'Scheduled' ? 'selected' : ''}>Scheduled</option>
+                                    <option value="Closed" ${d.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                document.getElementById('admin-demos-body').innerHTML =
+                    '<tr><td colspan="6" style="text-align:center;color:var(--danger);">Failed to load.</td></tr>';
+            }
+        }
+
+        async function updateDemo(id, status) {
+            const token = getToken();
+            await fetch(`/api/demos/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ status })
+            });
+        }
+
+        async function fetchAdminEvents() {
+            try {
+                const res = await fetch('/api/events');
+                const events = await res.json();
+                const tbody = document.getElementById('admin-events-body');
+                tbody.innerHTML = '';
+
+                if (!events.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No events. <a href="/create-event.html">Create one</a></td></tr>';
+                    return;
+                }
+
+                events.forEach(ev => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><a href="/event-details.html?id=${ev._id}" style="color:var(--primary-color);">${ev.title}</a></td>
+                            <td>${ev.category}</td>
+                            <td>${new Date(ev.date).toLocaleDateString()}</td>
+                            <td>${ev.availableSeats}/${ev.capacity}</td>
+                            <td>${formatPrice(ev.price)}</td>
+                            <td>
+                                <button class="btn btn-outline" style="padding:0.3rem 0.75rem;font-size:0.8rem;" onclick="deleteEvent('${ev._id}')">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                document.getElementById('admin-events-body').innerHTML =
+                    '<tr><td colspan="6" style="text-align:center;color:var(--danger);">Failed to load.</td></tr>';
+            }
+        }
+
+        async function deleteEvent(id) {
+            if (!confirm('Delete this event permanently?')) return;
+            const token = getToken();
+            const res = await fetch(`/api/events/${id}`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) fetchAdminEvents();
+            else alert('Failed to delete event');
+        }
+    </script>
+</body>
+</html>

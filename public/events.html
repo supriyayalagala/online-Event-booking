@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Events - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="events">
+    <nav class="navbar" id="navbar"></nav>
+
+    <!-- Creative featured + vertical rail -->
+    <section class="events-creative" id="events-creative">
+        <div class="events-creative-main" id="events-creative-main">
+            <div class="events-spine-label" id="creative-spine-label" aria-hidden="true">Events</div>
+            <div class="events-featured-panel">
+                <h1 id="creative-title" class="events-featured-sr-title">Loading event…</h1>
+                <p class="events-featured-meta" id="creative-meta"></p>
+                <div class="events-featured-img-wrap">
+                    <video id="creative-video" class="creative-feature-video event-card-video" muted loop playsinline preload="none" poster="" aria-label="Featured event"></video>
+                    <img id="creative-img" src="" alt="" loading="eager" hidden>
+                </div>
+                <p class="events-featured-desc" id="creative-desc"></p>
+                <a href="/events.html" id="creative-cta" class="events-featured-readmore">View &amp; book tickets →</a>
+            </div>
+        </div>
+        <aside class="events-creative-rail" aria-label="All events">
+            <p class="events-rail-hint">Select an upcoming event →</p>
+            <div class="events-rail-scroll" id="events-rail-scroll">
+                <div class="events-rail-track" id="events-rail-track">
+                    <p class="events-creative-empty">Loading…</p>
+                </div>
+            </div>
+        </aside>
+    </section>
+
+    <!-- Popular events + carousel -->
+    <section class="carousel-section ticket-events-carousel popular-events-section" id="events-popular-section" aria-label="Popular events">
+        <div class="popular-events-bar">
+            <div class="popular-events-bar-decor" aria-hidden="true"></div>
+            <div class="popular-events-bar-inner">
+                <h2 class="popular-events-title">Popular Events</h2>
+                <div class="popular-events-filters" role="group" aria-label="Filter events by date">
+                    <button type="button" class="popular-filter-pill" data-filter="today">Today</button>
+                    <button type="button" class="popular-filter-pill active" data-filter="tomorrow">Tomorrow</button>
+                    <button type="button" class="popular-filter-pill" data-filter="week">This Week</button>
+                    <button type="button" class="popular-filter-pill" data-filter="all">All</button>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-wrap popular-events-carousel-wrap">
+            <div class="carousel-nav-row" id="events-carousel-nav-row">
+                <button type="button" class="carousel-btn" id="carousel-prev" aria-label="Scroll left">←</button>
+                <button type="button" class="carousel-btn" id="carousel-next" aria-label="Scroll right">→</button>
+            </div>
+            <div class="carousel-viewport" id="events-carousel-viewport">
+                <div class="carousel-track" id="events-carousel-track">
+                    <p class="carousel-empty">Loading events...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sticky scroll: images animate as you scroll -->
+    <section class="sticky-scroll-section" id="sticky-scroll-section" aria-label="Scroll through events">
+        <div class="sticky-scroll-intro">
+            <h2>Scroll through experiences</h2>
+            <p>Each event comes alive as you scroll — sticky preview on the left, full images on the right.</p>
+            <span class="sticky-scroll-hint">Scroll down ↓</span>
+        </div>
+        <div class="sticky-scroll-layout">
+            <aside class="sticky-scroll-sidebar">
+                <div class="sticky-scroll-pin">
+                    <p class="sticky-scroll-label">Now viewing</p>
+                    <p class="sticky-counter"><span id="sticky-index">01</span> / <span id="sticky-total">06</span></p>
+                    <div class="sticky-progress-track">
+                        <div class="sticky-progress-bar" id="sticky-progress"></div>
+                    </div>
+                    <h3 id="sticky-title">Loading…</h3>
+                    <div class="sticky-meta" id="sticky-meta"></div>
+                    <p id="sticky-desc"></p>
+                    <a href="/events.html" id="sticky-cta" class="btn btn-primary btn-lg">Book this event</a>
+                </div>
+            </aside>
+            <div class="sticky-scroll-panels" id="sticky-scroll-panels">
+                <p class="sticky-scroll-empty">Loading event images…</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="events-ticket-listing">
+    <main class="container events-ticket-listing-inner">
+        <h2 class="events-page-grid-title">All events</h2>
+
+        <div class="filter-bar filter-bar-dark">
+            <div class="form-group">
+                <input type="text" id="search-keyword" placeholder="Search by event title...">
+            </div>
+            <div class="form-group">
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="Wedding">Wedding</option>
+                    <option value="Birthday">Birthday</option>
+                    <option value="Corporate">Corporate</option>
+                    <option value="Mature/Family Function">Mature/Family Function</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <button type="button" id="filter-btn" class="btn btn-primary">Search</button>
+        </div>
+
+        <div class="events-grid events-grid-ticket" id="all-events">
+            <p class="empty-msg empty-msg-dark">Loading events...</p>
+        </div>
+    </main>
+    </section>
+
+    <footer id="site-footer"></footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/event-videos.js"></script>
+    <script src="/js/carousel.js"></script>
+    <script src="/js/sticky-scroll.js"></script>
+    <script src="/js/events-creative.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        async function fetchEventsGrid(keyword = '', category = '') {
+            try {
+                let url = '/api/events?';
+                if (keyword) url += `keyword=${encodeURIComponent(keyword)}&`;
+                if (category) url += `category=${encodeURIComponent(category)}&`;
+
+                const response = await fetch(url);
+                const events = await response.json();
+                const container = document.getElementById('all-events');
+                container.innerHTML = '';
+
+                if (!events.length) {
+                    container.innerHTML = '<p class="empty-msg empty-msg-dark">No events found. Try another filter.</p>';
+                    return;
+                }
+
+                events.forEach(event => {
+                    container.innerHTML += renderEventCard(event);
+                });
+            } catch (error) {
+                document.getElementById('all-events').innerHTML =
+                    '<p class="empty-msg empty-msg-dark error">Failed to load events.</p>';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const category = params.get('category') || '';
+            const keyword = params.get('keyword') || '';
+            if (category) document.getElementById('category-filter').value = category;
+            if (keyword) document.getElementById('search-keyword').value = keyword;
+
+            await initEventsCreative('events-creative', { keyword, category });
+            await initPopularEventsSection({
+                sectionEl: document.getElementById('events-popular-section'),
+                trackId: 'events-carousel-track',
+                viewportId: 'events-carousel-viewport',
+                prevId: 'carousel-prev',
+                nextId: 'carousel-next',
+                navRowId: 'events-carousel-nav-row',
+                keyword,
+                category
+            });
+            await loadStickyScrollEvents('sticky-scroll-panels', { limit: 6, keyword, category });
+            fetchEventsGrid(keyword, category);
+
+            document.getElementById('filter-btn').addEventListener('click', () => {
+                const kw = document.getElementById('search-keyword').value;
+                const cat = document.getElementById('category-filter').value;
+                initEventsCreative('events-creative', { keyword: kw, category: cat });
+                initPopularEventsSection({
+                    sectionEl: document.getElementById('events-popular-section'),
+                    trackId: 'events-carousel-track',
+                    viewportId: 'events-carousel-viewport',
+                    prevId: 'carousel-prev',
+                    nextId: 'carousel-next',
+                    navRowId: 'events-carousel-nav-row',
+                    keyword: kw,
+                    category: cat
+                });
+                loadStickyScrollEvents('sticky-scroll-panels', { limit: 6, keyword: kw, category: cat });
+                fetchEventsGrid(kw, cat);
+            });
+        });
+    </script>
+</body>
+</html>

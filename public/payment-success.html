@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="">
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="payment-success-page">
+        <div id="success-loading" class="payment-loading">Loading…</div>
+
+        <div id="success-card-wrap" class="payment-success-card" hidden>
+            <div class="payment-success-confetti" aria-hidden="true">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="payment-success-icon-wrap">
+                <svg class="payment-success-check" viewBox="0 0 52 52" aria-hidden="true">
+                    <circle class="payment-success-check-circle" cx="26" cy="26" r="25" fill="none"/>
+                    <path class="payment-success-check-mark" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+            </div>
+            <h1 class="payment-success-title">Payment succeeded!</h1>
+            <p class="payment-success-text">Your transaction was completed successfully. Thank you for your purchase!</p>
+            <p class="payment-success-event" id="success-event"></p>
+            <p class="payment-success-amount" id="success-amount"></p>
+            <a href="/my-bookings.html" class="payment-success-btn">Go to Your Dashboard</a>
+            <a href="/events.html" class="payment-success-secondary">Browse more events</a>
+        </div>
+
+        <div id="success-error" class="payment-loading" hidden>
+            <p class="empty-msg error" id="success-error-msg"></p>
+            <a href="/my-bookings.html" class="btn btn-primary" style="margin-top:1rem;">My bookings</a>
+        </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+
+    <script src="/js/main.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        async function initPaymentSuccessPage() {
+            const token = getToken();
+            const params = new URLSearchParams(window.location.search);
+            const bookingId = params.get('bookingId');
+
+            if (!token) {
+                window.location.href = '/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+                return;
+            }
+
+            if (!bookingId) {
+                document.getElementById('success-loading').hidden = true;
+                document.getElementById('success-error').hidden = false;
+                document.getElementById('success-error-msg').textContent = 'No booking found.';
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/bookings/${bookingId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message || 'Could not load booking');
+                }
+
+                if (data.paymentStatus !== 'Completed') {
+                    window.location.href = `/payment.html?bookingId=${bookingId}`;
+                    return;
+                }
+
+                const ev = data.event || {};
+                document.getElementById('success-event').textContent =
+                    ev.title ? `Event: ${ev.title}` : '';
+                document.getElementById('success-amount').textContent =
+                    `Paid ${formatPrice(data.totalPrice)} · ${data.guests} guest${data.guests === 1 ? '' : 's'}`;
+
+                document.getElementById('success-loading').hidden = true;
+                document.getElementById('success-card-wrap').hidden = false;
+            } catch (e) {
+                document.getElementById('success-loading').hidden = true;
+                document.getElementById('success-error').hidden = false;
+                document.getElementById('success-error-msg').textContent = e.message || 'Something went wrong.';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initPaymentSuccessPage);
+    </script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body data-page="">
+    <nav class="navbar" id="navbar"></nav>
+
+    <header class="page-hero page-hero-compact">
+        <h1>My Bookings</h1>
+        <p>View and track all your event reservations.</p>
+    </header>
+
+    <main class="container">
+        
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Date & Time</th>
+                        <th>Location</th>
+                        <th>Guests</th>
+                        <th>Total Price</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                    </tr>
+                </thead>
+                <tbody id="bookings-body">
+                    <tr><td colspan="7" style="text-align: center;">Loading your bookings...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer id="site-footer"></footer>
+    <script src="/js/main.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getToken();
+
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/bookings/mybookings', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                const bookings = await response.json();
+                const tbody = document.getElementById('bookings-body');
+                tbody.innerHTML = '';
+
+                if (bookings.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">You have no bookings yet.</td></tr>';
+                    return;
+                }
+
+                bookings.forEach(b => {
+                    const statusClass = b.status.toLowerCase();
+                    const paymentClass = b.paymentStatus.toLowerCase();
+                    
+                    const eventTitle = b.event ? b.event.title : 'Deleted Event';
+                    const eventId = b.event ? b.event._id : '#';
+                    const eventDate = b.event && b.event.date ? new Date(b.event.date).toLocaleDateString() : 'N/A';
+                    const eventTime = b.event ? b.event.time : 'N/A';
+                    const eventLocation = b.event ? b.event.location : 'N/A';
+                    const eventLink = b.event ? `/event-details.html?id=${eventId}` : '#';
+
+                    const payLink = b.paymentStatus === 'Pending'
+                        ? `<br><a href="/payment.html?bookingId=${b._id}" class="btn btn-primary" style="margin-top:0.35rem;padding:0.25rem 0.6rem;font-size:0.75rem;display:inline-block;">Pay now</a>`
+                        : '';
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><a href="${eventLink}" style="color: var(--primary-color); font-weight: 500; text-decoration: none;">${eventTitle}</a></td>
+                            <td>${eventDate} at ${eventTime}</td>
+                            <td>${eventLocation}</td>
+                            <td>${b.guests}</td>
+                            <td>${formatPrice(b.totalPrice)}</td>
+                            <td><span class="badge badge-${statusClass}">${b.status}</span></td>
+                            <td>
+                                <span class="badge badge-${paymentClass}">${b.paymentStatus}</span>
+                                ${payLink}
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error(error);
+                document.getElementById('bookings-body').innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--danger);">Failed to load bookings.</td></tr>';
+            }
+        });
+    </script>
+</body>
+</html>

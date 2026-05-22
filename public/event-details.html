@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - TicketFlow</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .details-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .event-main-img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .booking-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 100px;
+        }
+        @media (max-width: 768px) {
+            .details-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body data-page="events">
+    <nav class="navbar" id="navbar"></nav>
+
+    <main class="container" id="event-details-content">
+        <p style="text-align: center; margin-top: 2rem;">Loading event details...</p>
+    </main>
+
+    <footer id="site-footer"></footer>
+    <script src="/js/main.js"></script>
+    <script src="/js/event-videos.js"></script>
+    <script src="/js/accessibility.js"></script>
+    <script src="/js/pages.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('id');
+
+            if (!eventId) {
+                window.location.href = '/events.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/events/${eventId}`);
+                if (!response.ok) throw new Error('Event not found');
+                const event = await response.json();
+
+                let existingBooking = null;
+                const token = getToken();
+                if (token) {
+                    try {
+                        const checkRes = await fetch(`/api/bookings/check/${eventId}`, {
+                            headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (checkRes.ok) {
+                            const check = await checkRes.json();
+                            if (check.alreadyBooked) existingBooking = check;
+                        }
+                    } catch (_) { /* ignore check errors */ }
+                }
+
+                const alreadyBooked = !!existingBooking;
+                const paymentPending = existingBooking && existingBooking.paymentStatus === 'Pending';
+                const bookedMessage = alreadyBooked
+                    ? (paymentPending
+                        ? `You already reserved this event. <a href="/payment.html?bookingId=${existingBooking.bookingId}" style="color:var(--primary-color);">Complete payment</a> or view <a href="/my-bookings.html" style="color:var(--primary-color);">my bookings</a>.`
+                        : `You already booked this event. <a href="/my-bookings.html" style="color:var(--primary-color);">View my bookings</a>.`)
+                    : '';
+
+                document.title = `${event.title} - TicketFlow`;
+
+                const content = `
+                    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">${event.title}</h1>
+                    <span class="badge" style="background: var(--primary-color); color: white; margin-bottom: 1rem; display: inline-block; font-size: 1rem; padding: 0.5rem 1rem;">${event.category}</span>
+                    
+                    <div class="details-container">
+                        <div>
+                            ${event.videoUrl ? `
+                            <div class="event-main-media">
+                                <video class="event-main-video" src="${event.videoUrl}" poster="${event.imageUrl}" muted loop playsinline autoplay></video>
+                            </div>` : `<img src="${event.imageUrl}" alt="${event.title}" class="event-main-img">`}
+                            <h3 style="margin-top: 2rem; font-size: 1.5rem;">About This Event</h3>
+                            <p style="margin-top: 1rem; font-size: 1.1rem; color: var(--text-color);">${event.description}</p>
+                            
+                            <h3 style="margin-top: 2rem; font-size: 1.5rem;">Event Details</h3>
+                            <ul style="margin-top: 1rem; font-size: 1.1rem; list-style-position: inside;">
+                                <li><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</li>
+                                <li><strong>Time:</strong> ${event.time}</li>
+                                <li><strong>Location:</strong> ${event.location}</li>
+                                <li><strong>Total Capacity:</strong> ${event.capacity} persons</li>
+                            </ul>
+                        </div>
+                        
+                        <div>
+                            <div class="booking-card">
+                                <h3 style="font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1rem;">Booking Summary</h3>
+                                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 1rem;">${formatPrice(event.price)} <span style="font-size: 1rem; color: var(--light-text); font-weight: 400;">/ person</span></div>
+                                <p style="margin-bottom: 1.5rem; color: ${event.availableSeats > 0 ? 'var(--secondary-color)' : 'var(--danger)'}; font-weight: 600;">
+                                    ${event.availableSeats} Seats Available
+                                </p>
+                                
+                                ${alreadyBooked ? `<p style="margin-bottom:1rem;padding:0.75rem;background:#ecfdf5;border-radius:0.5rem;color:#065f46;font-size:0.95rem;">${bookedMessage}</p>` : ''}
+                                <form id="booking-form">
+                                    <div class="form-group">
+                                        <label for="guests">Number of Guests</label>
+                                        <input type="number" id="guests" min="1" max="${event.availableSeats}" value="1" required ${alreadyBooked ? 'disabled' : ''}>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 1.5rem; font-size: 1.2rem;">
+                                        <span>Total Price:</span>
+                                        <span id="total-price">${formatPrice(event.price)}</span>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem;" ${event.availableSeats === 0 || alreadyBooked ? 'disabled' : ''}>
+                                        ${alreadyBooked ? 'Already booked' : (event.availableSeats === 0 ? 'Sold Out' : 'Book Now')}
+                                    </button>
+                                </form>
+                                <div id="booking-msg" style="margin-top: 1rem; text-align: center; font-weight: 500;"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('event-details-content').innerHTML = content;
+
+                // Handle price update dynamically
+                const guestsInput = document.getElementById('guests');
+                const totalPriceSpan = document.getElementById('total-price');
+                
+                if (guestsInput) {
+                    guestsInput.addEventListener('input', () => {
+                        const guests = guestsInput.value;
+                        totalPriceSpan.innerText = formatPrice(guests * event.price);
+                    });
+
+                    // Handle booking submission
+                    document.getElementById('booking-form').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const token = getToken();
+                        const msgDiv = document.getElementById('booking-msg');
+
+                        if (!token) {
+                            msgDiv.style.color = 'var(--danger)';
+                            msgDiv.innerHTML = 'Please <a href="/login.html" style="color: var(--primary-color);">login</a> to book.';
+                            return;
+                        }
+
+                        const guests = document.getElementById('guests').value;
+
+                        try {
+                            const bookRes = await fetch('/api/bookings', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    Authorization: `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ eventId, guests })
+                            });
+
+                            const bookData = await bookRes.json();
+
+                            if (bookRes.ok) {
+                                msgDiv.style.color = 'var(--secondary-color)';
+                                msgDiv.innerText = 'Booking reserved! Redirecting to payment...';
+                                setTimeout(() => {
+                                    window.location.href = `/payment.html?bookingId=${bookData._id}`;
+                                }, 800);
+                            } else {
+                                msgDiv.style.color = 'var(--danger)';
+                                if (bookData.bookingId && bookData.paymentStatus === 'Pending') {
+                                    msgDiv.innerHTML = `${bookData.message || 'Booking failed'} <a href="/payment.html?bookingId=${bookData.bookingId}" style="color:var(--primary-color);">Go to payment</a>`;
+                                } else if (bookData.bookingId) {
+                                    msgDiv.innerHTML = `${bookData.message || 'Booking failed'} <a href="/my-bookings.html" style="color:var(--primary-color);">My bookings</a>`;
+                                } else {
+                                    msgDiv.innerText = bookData.message || 'Booking failed';
+                                }
+                            }
+                        } catch (error) {
+                            msgDiv.style.color = 'var(--danger)';
+                            msgDiv.innerText = 'Network error.';
+                        }
+                    });
+                }
+            } catch (error) {
+                document.getElementById('event-details-content').innerHTML = '<p style="text-align: center; color: var(--danger);">Error loading event details.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
